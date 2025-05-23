@@ -28,7 +28,7 @@ void print_parsed_input_command(char *arguments[]) {
   }
   putchar('\n');
 }
-
+ 
 static void exit_function() {
   write(STDOUT_FILENO, "exiting minimal shell\n", 22);
   exit(EXIT_SUCCESS);
