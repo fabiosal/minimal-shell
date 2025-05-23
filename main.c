@@ -20,6 +20,7 @@ void print_parsed_input_command(char *arguments[]) {
       printf("%d ", arguments[j][c]);
       c++;
     }
+    printf("%d ", arguments[j][c]);
 
     putchar('\n');
     puts(arguments[j]);
@@ -62,6 +63,15 @@ int main(int argc, char *argv[]) {
 
       arguments[i - 1][strlen(arguments[i - 1]) - 1] = '\0';
       arguments[i] = NULL;
+
+      // --handle multiple white space in commands
+      int j;
+      for (j = 0; j < i; j++) {
+        if (arguments[j][0] == '\0') {
+          arguments[j] = arguments[j + 1];
+        }
+      }
+      // --------------------------------------
 
       if (arguments[0] != NULL) {
         if (strcmp(arguments[0], "exit") == 0) {
