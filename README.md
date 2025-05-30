@@ -6,8 +6,9 @@ Run `make msh` in order to compile the code and create the `msh` binary file
 ## Configuration
 The shell is looking for command in the directory of your PATH environment variable
 
-## Feature
-- write `exit` in order to exit the shell
+## BuildIn commands
+- `exit` in order to exit the shell
+- `cd [some path]` in order to change working directory
 
 ## To Do
 - build on other OS

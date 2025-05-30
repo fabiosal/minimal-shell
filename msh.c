@@ -58,7 +58,6 @@ int main(int argc, char *argv[]) {
       }
     }
     // --------------------------------------
-    /*print_parsed_input_command(arguments);*/
 
     if (arguments[0] != NULL) {
 
