@@ -1,6 +1,6 @@
 #define _POSIX_SOURCE
+#include <errno.h>
 #include <fcntl.h>
-#include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,11 +28,6 @@ void print_parsed_input_command(char *arguments[]) {
   }
   putchar('\n');
 }
- 
-static void exit_function() {
-  write(STDOUT_FILENO, "exiting minimal shell\n", 22);
-  exit(EXIT_SUCCESS);
-}
 
 int main(int argc, char *argv[]) {
 
@@ -43,61 +38,71 @@ int main(int argc, char *argv[]) {
   buf[MAX_SHELL_INPUT_LEN - 1] = '\0';
   while (read(0, buf, sizeof(buf)) > 0) {
 
-    int process_id = fork();
+    char *arguments[MAX_SHELL_ARGS];
+    char *token = strtok(buf, " ");
+    int i = 0;
+    while (token) {
+      arguments[i] = token;
+      token = strtok(NULL, " ");
+      i++;
+    }
 
-    if (process_id < 0) {
-      // fork failed
-      exit(EXIT_FAILURE);
-    } else if (process_id == 0) {
-      // child process
-      /*printf("child process - pid: %d\n", getpid());*/
-      char *arguments[MAX_SHELL_ARGS];
+    arguments[i - 1][strlen(arguments[i - 1]) - 1] = '\0';
+    arguments[i] = NULL;
 
-      char *token = strtok(buf, " ");
-      int i = 0;
-      while (token) {
-        arguments[i] = token;
-        token = strtok(NULL, " ");
-        i++;
+    // --handle multiple white space in commands
+    int j;
+    for (j = 0; j < i; j++) {
+      if (arguments[j][0] == '\0') {
+        arguments[j] = arguments[j + 1];
       }
+    }
+    // --------------------------------------
+    /*print_parsed_input_command(arguments);*/
 
-      arguments[i - 1][strlen(arguments[i - 1]) - 1] = '\0';
-      arguments[i] = NULL;
+    if (arguments[0] != NULL) {
 
-      // --handle multiple white space in commands
-      int j;
-      for (j = 0; j < i; j++) {
-        if (arguments[j][0] == '\0') {
-          arguments[j] = arguments[j + 1];
+      // -- buildin commands
+      if (strcmp(arguments[0], "exit") == 0) {
+        write(STDOUT_FILENO, "exiting minimal shell\n", 22);
+        exit(EXIT_SUCCESS);
+      } else if (strcmp(arguments[0], "cd") == 0) {
+
+        errno = 0;
+        if (chdir(arguments[1]) != 0) {
+          perror("Error :");
         }
-      }
-      // --------------------------------------
-
-      if (arguments[0] != NULL) {
-        if (strcmp(arguments[0], "exit") == 0) {
-          kill(getppid(), SIGINT);
-        }
+        // ---------------------------------
+      } else {
 
         /*print_parsed_input_command(arguments);*/
-        execvp(arguments[0], arguments);
+
+        int process_id = fork();
+
+        if (process_id < 0) {
+          // fork failed
+          exit(EXIT_FAILURE);
+        } else if (process_id == 0) {
+          // child process
+          /*printf("child process - pid: %d\n", getpid());*/
+
+          execvp(arguments[0], arguments);
+          exit(EXIT_SUCCESS);
+          // ---------------------------------
+
+        } else {
+          // parent process
+
+          int return_code;
+          return_code = waitpid(process_id, NULL, 0);
+
+          /*printf("parent process - pid : %d\n", getpid());*/
+          /*printf("parent process - pid of waited process: %d\n",
+           * return_code);*/
+        }
       }
-      exit(EXIT_SUCCESS);
-
-    } else {
-      // parent process
-
-      if (signal(SIGINT, exit_function) == SIG_ERR) {
-        fputs("An error occurred while setting a signal handler.\n", stderr);
-        return EXIT_FAILURE;
-      }
-
-      int return_code;
-      return_code = waitpid(process_id, NULL, 0);
-
       write(STDOUT_FILENO, "msh$ ", 5);
       memset(buf, '\0', MAX_SHELL_INPUT_LEN);
-      /*printf("parent process - pid : %d\n", getpid());*/
-      /*printf("parent process - pid of waited process: %d\n", return_code);*/
     }
   }
 }
