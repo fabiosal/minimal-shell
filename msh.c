@@ -101,8 +101,8 @@ int main(int argc, char *argv[]) {
            * return_code);*/
         }
       }
-      write(STDOUT_FILENO, "msh$ ", 5);
-      memset(buf, '\0', MAX_SHELL_INPUT_LEN);
     }
+    write(STDOUT_FILENO, "msh$ ", 5);
+    memset(buf, '\0', MAX_SHELL_INPUT_LEN);
   }
 }
