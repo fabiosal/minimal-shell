@@ -85,7 +85,10 @@ int main(int argc, char *argv[]) {
           // child process
           /*printf("child process - pid: %d\n", getpid());*/
 
-          execvp(arguments[0], arguments);
+          errno = 0;
+          if (execvp(arguments[0], arguments) == -1) {
+            perror("Error :");
+          }
           exit(EXIT_SUCCESS);
           // ---------------------------------
 
