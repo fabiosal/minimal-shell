@@ -29,37 +29,42 @@ void print_parsed_input_command(char *arguments[]) {
   putchar('\n');
 }
 
+void parsing_input(char *buf, char *arguments[]) {
+  char *token = strtok(buf, " ");
+  int i = 0;
+  while (token) {
+    arguments[i] = token;
+    token = strtok(NULL, " ");
+    i++;
+  }
+
+  arguments[i - 1][strlen(arguments[i - 1]) - 1] = '\0';
+  arguments[i] = NULL;
+
+  // --handle multiple white space in commands
+  int j;
+  for (j = 0; j < i; j++) {
+    if (arguments[j][0] == '\0') {
+      arguments[j] = arguments[j + 1];
+    }
+  }
+  // --------------------------------------
+}
+
 int main(int argc, char *argv[]) {
 
   write(STDOUT_FILENO, "msh$ ", 5);
 
   char buf[MAX_SHELL_INPUT_LEN];
+  memset(buf, '\0', MAX_SHELL_INPUT_LEN);
 
-  buf[MAX_SHELL_INPUT_LEN - 1] = '\0';
   while (read(0, buf, sizeof(buf)) > 0) {
 
     char *arguments[MAX_SHELL_ARGS];
-    char *token = strtok(buf, " ");
-    int i = 0;
-    while (token) {
-      arguments[i] = token;
-      token = strtok(NULL, " ");
-      i++;
-    }
-
-    arguments[i - 1][strlen(arguments[i - 1]) - 1] = '\0';
-    arguments[i] = NULL;
-
-    // --handle multiple white space in commands
-    int j;
-    for (j = 0; j < i; j++) {
-      if (arguments[j][0] == '\0') {
-        arguments[j] = arguments[j + 1];
-      }
-    }
-    // --------------------------------------
+    parsing_input(buf, arguments);
 
     if (arguments[0] != NULL) {
+        print_parsed_input_command(arguments);
 
       // -- buildin commands
       if (strcmp(arguments[0], "exit") == 0) {
